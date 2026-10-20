@@ -16,7 +16,7 @@ public class SimplePlayerController : MonoBehaviour
 {
     // 0 = parado, 1 = agachado, 2 = prone
     int stance = 0;
-    readonly float[] heights = { 1.8f, 1.0f, 0.6f };
+    readonly float[] heights = { 1.8f, 1.0f, 0.2f };
     readonly float[] speeds = { 4f, 2f, 0.8f };
 
     CharacterController cc;
