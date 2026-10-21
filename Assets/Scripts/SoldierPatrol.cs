@@ -6,15 +6,15 @@ using System.Collections.Generic;
 
 public class SoldierPatrol : MonoBehaviour
 {
-   
+
     public List<Transform> waypoints = new List<Transform>();
 
-    
+
     public float speed = 2f;
     public float rotationSpeed = 5f;
     public float arrivalDistance = 0.2f;
 
- 
+
     public float waitMin = 2f;
     public float waitMax = 5f;
 
@@ -45,18 +45,18 @@ public class SoldierPatrol : MonoBehaviour
         if (target == null)
             return;
 
-        
+
         Vector3 direction = target.position - transform.position;
         direction.y = 0f;
 
-       
+
         if (direction.magnitude <= arrivalDistance)
         {
             StartCoroutine(WaitAtWaypoint());
             return;
         }
 
-    
+
         Quaternion targetRotation = Quaternion.LookRotation(direction);
 
         transform.rotation = Quaternion.Slerp(
@@ -65,7 +65,7 @@ public class SoldierPatrol : MonoBehaviour
             rotationSpeed * Time.deltaTime
         );
 
-        
+
         transform.position = Vector3.MoveTowards(
             transform.position,
             target.position,
