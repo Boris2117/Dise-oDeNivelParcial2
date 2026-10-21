@@ -20,6 +20,7 @@ public class SoldierPatrol : MonoBehaviour
 
     private int currentWaypoint = 0;
     private bool waiting = false;
+    private int direction = 1;
 
     public float visionRange = 10f;
     [Range(0f, 360f)]
@@ -73,6 +74,7 @@ public class SoldierPatrol : MonoBehaviour
         );
     }
 
+
     IEnumerator WaitAtWaypoint()
     {
         waiting = true;
@@ -81,7 +83,21 @@ public class SoldierPatrol : MonoBehaviour
             Random.Range(waitMin, waitMax)
         );
 
-        currentWaypoint = (currentWaypoint + 1) % waypoints.Count;
+        
+        currentWaypoint += direction;
+
+      
+        if (currentWaypoint >= waypoints.Count - 1)
+        {
+            currentWaypoint = waypoints.Count - 1;
+            direction = -1;
+        }
+        
+        else if (currentWaypoint <= 0)
+        {
+            currentWaypoint = 0;
+            direction = 1;
+        }
 
         waiting = false;
     }
