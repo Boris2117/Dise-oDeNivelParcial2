@@ -5,12 +5,15 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
+  - enabled: 1
+    path: Assets/Scenes/Niveles de Portal/3.unity
+    guid: 20d34d6729846a640b6d9abb9c7550b8
+  - enabled: 1
+    path: Assets/Scenes/Niveles de Portal/1.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
-    path: Assets/Scenes/Metal Gear.unity
-    guid: 8b7a4b61fe9c00e46b837107e5f52df9
+    path: Assets/Scenes/Niveles de Portal/4.unity
+    guid: 26af55d583685ad41966f1d30db6c536
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
