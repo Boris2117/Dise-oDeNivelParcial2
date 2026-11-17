@@ -6,143 +6,71 @@ using System.Collections.Generic;
 
 public class SoldierPatrol : MonoBehaviour
 {
+    [SerializeField] Transform[] waypoints;
+    [SerializeField] float speed = 2f;
+    [SerializeField] float waitTime = 0.5f;
+    [SerializeField] LayerMask carryLayers;   // Player + Carryable
 
-    public List<Transform> waypoints = new List<Transform>();
-
-
-    public float speed = 2f;
-    public float rotationSpeed = 5f;
-    public float arrivalDistance = 0.2f;
-
-
-    public float waitMin = 2f;
-    public float waitMax = 5f;
-
-    private int currentWaypoint = 0;
-    private bool waiting = false;
-    private int direction = 1;
-
-    public float visionRange = 10f;
-    [Range(0f, 360f)]
-    public float visionAngle = 90f;
-    public Color visionColor = Color.red;
+    int index = 0;
+    int dir = 1;
+    float waitTimer;
+    readonly HashSet<Transform> riders = new HashSet<Transform>();
 
     void Start()
     {
-        if (waypoints.Count == 0)
-        {
-            Debug.LogWarning("Asigná los waypoints al soldado.");
-            enabled = false;
-        }
+        if (waypoints.Length > 0)
+            transform.position = waypoints[0].position;
     }
 
-    void Update()
+    void LateUpdate()
     {
-        if (waiting || waypoints.Count == 0)
-            return;
+        if (waypoints.Length < 2) return;
 
-        Transform target = waypoints[currentWaypoint];
-
-        if (target == null)
-            return;
-
-
-        Vector3 direction = target.position - transform.position;
-        direction.y = 0f;
-
-
-        if (direction.magnitude <= arrivalDistance)
+        if (waitTimer > 0f)
         {
-            StartCoroutine(WaitAtWaypoint());
+            waitTimer -= Time.deltaTime;
             return;
         }
 
+        Vector3 target = waypoints[index].position;
+        Vector3 before = transform.position;
+        transform.position = Vector3.MoveTowards(before, target, speed * Time.deltaTime);
+        Vector3 delta = transform.position - before;
 
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        foreach (var r in riders)
+        {
+            if (r == null) continue;
 
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            targetRotation,
-            rotationSpeed * Time.deltaTime
-        );
+            if (r.TryGetComponent(out CharacterController cc))
+                cc.Move(delta);
+            else
+                r.position += delta;
+        }
 
-
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            target.position,
-            speed * Time.deltaTime
-        );
+        if (Vector3.Distance(transform.position, target) < 0.01f)
+        {
+            waitTimer = waitTime;
+            if (index + dir >= waypoints.Length || index + dir < 0)
+                dir *= -1;
+            index += dir;
+        }
     }
 
+    bool InLayerMask(GameObject go) => (carryLayers.value & (1 << go.layer)) != 0;
 
-    IEnumerator WaitAtWaypoint()
+    Transform GetRoot(Collider c) =>
+        c.attachedRigidbody != null ? c.attachedRigidbody.transform : c.transform;
+
+    void OnTriggerEnter(Collider other)
     {
-        waiting = true;
-
-        yield return new WaitForSeconds(
-            Random.Range(waitMin, waitMax)
-        );
-
-        
-        currentWaypoint += direction;
-
-      
-        if (currentWaypoint >= waypoints.Count - 1)
-        {
-            currentWaypoint = waypoints.Count - 1;
-            direction = -1;
-        }
-        
-        else if (currentWaypoint <= 0)
-        {
-            currentWaypoint = 0;
-            direction = 1;
-        }
-
-        waiting = false;
+        if (InLayerMask(other.gameObject))
+            riders.Add(GetRoot(other));
     }
 
-
-    void OnDrawGizmosSelected()
+    void OnTriggerExit(Collider other)
     {
-        Vector3 origin = transform.position + Vector3.up * 1.5f;
-
-        Gizmos.color = visionColor;
-        Gizmos.DrawWireSphere(origin, visionRange);
-
-        Vector3 forward = transform.forward;
-        forward.y = 0f;
-        forward.Normalize();
-
-        Vector3 leftBoundary = Quaternion.Euler(
-            0f, -visionAngle / 2f, 0f
-        ) * forward;
-
-        Vector3 rightBoundary = Quaternion.Euler(
-            0f, visionAngle / 2f, 0f
-        ) * forward;
-
-        Gizmos.DrawRay(origin, leftBoundary * visionRange);
-        Gizmos.DrawRay(origin, rightBoundary * visionRange);
-
-        int segments = 40;
-        Vector3 previousPoint = origin + leftBoundary * visionRange;
-
-        for (int i = 1; i <= segments; i++)
-        {
-            float angle = -visionAngle / 2f
-                        + visionAngle * i / segments;
-
-            Vector3 direction = Quaternion.Euler(
-                0f, angle, 0f
-            ) * forward;
-
-            Vector3 nextPoint = origin + direction * visionRange;
-
-            Gizmos.DrawLine(previousPoint, nextPoint);
-            previousPoint = nextPoint;
-        }
+        if (InLayerMask(other.gameObject))
+            riders.Remove(GetRoot(other));
     }
-
 }
 
