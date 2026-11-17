@@ -1097,6 +1097,7 @@ MonoBehaviour:
   carryLayers:
     serializedVersion: 2
     m_Bits: 192
+  boundsMargin: 0.2
 --- !u!33 &148551120
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -16630,7 +16631,7 @@ PrefabInstance:
       objectReference: {fileID: 819166252}
     - target: {fileID: 1155299541144100765, guid: 6349c1d089ff4544ebe8e7fc2b41e85b, type: 3}
       propertyPath: m_VersionIndex
-      value: 3143
+      value: 3146
       objectReference: {fileID: 0}
     - target: {fileID: 1952684381345071547, guid: 6349c1d089ff4544ebe8e7fc2b41e85b, type: 3}
       propertyPath: m_Mesh

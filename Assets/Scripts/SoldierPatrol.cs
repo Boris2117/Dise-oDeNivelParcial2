@@ -9,12 +9,25 @@ public class SoldierPatrol : MonoBehaviour
     [SerializeField] Transform[] waypoints;
     [SerializeField] float speed = 2f;
     [SerializeField] float waitTime = 0.5f;
-    [SerializeField] LayerMask carryLayers;   // Player + Carryable
+    [SerializeField] LayerMask carryLayers;      // Player + Carryable
+    [SerializeField] float boundsMargin = 0.2f;  // tolerancia para no soltar al player en el borde
 
     int index = 0;
     int dir = 1;
     float waitTimer;
+    Collider triggerCol;
     readonly HashSet<Transform> riders = new HashSet<Transform>();
+
+    void Awake()
+    {
+        foreach (var c in GetComponents<Collider>())
+        {
+            if (c.isTrigger) { triggerCol = c; break; }
+        }
+
+        if (triggerCol == null)
+            Debug.LogWarning($"{name}: falta un Collider con Is Trigger activado.", this);
+    }
 
     void Start()
     {
@@ -37,10 +50,16 @@ public class SoldierPatrol : MonoBehaviour
         transform.position = Vector3.MoveTowards(before, target, speed * Time.deltaTime);
         Vector3 delta = transform.position - before;
 
+        // Sacar de la lista a quien ya no está encima (teleport, destruido, etc.)
+        if (triggerCol != null)
+        {
+            Bounds b = triggerCol.bounds;
+            b.Expand(boundsMargin);
+            riders.RemoveWhere(r => r == null || !b.Contains(r.position));
+        }
+
         foreach (var r in riders)
         {
-            if (r == null) continue;
-
             if (r.TryGetComponent(out CharacterController cc))
                 cc.Move(delta);
             else
@@ -71,6 +90,22 @@ public class SoldierPatrol : MonoBehaviour
     {
         if (InLayerMask(other.gameObject))
             riders.Remove(GetRoot(other));
+    }
+
+    // Opcional: llamalo desde el portal si querés soltar al player explícitamente
+    public void Release(Transform t) => riders.Remove(t);
+
+    void OnDrawGizmos()
+    {
+        if (waypoints == null || waypoints.Length < 2) return;
+        Gizmos.color = Color.yellow;
+        for (int i = 0; i < waypoints.Length; i++)
+        {
+            if (waypoints[i] == null) continue;
+            Gizmos.DrawSphere(waypoints[i].position, 0.15f);
+            if (i + 1 < waypoints.Length && waypoints[i + 1] != null)
+                Gizmos.DrawLine(waypoints[i].position, waypoints[i + 1].position);
+        }
     }
 }
 
